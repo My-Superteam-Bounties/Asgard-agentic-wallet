@@ -107,7 +107,7 @@ solana-keygen new -o ~/.asgard/keys/kora-signer.json --no-bip39-passphrase --for
 solana airdrop 2 ~/.asgard/keys/kora-signer.json --url devnet
 
 # 4. Boot the paymaster using our pre-configured Kora definitions
-KORA_SPONSOR_PRIVATE_KEY=$(cat ~/.asgard/keys/kora-signer.json) kora --config apps/api/kora/kora.toml rpc start --signers-config apps/api/kora/signers.toml
+KORA_SPONSOR_PRIVATE_KEY=$(cat ~/.asgard/keys/kora-signer.json) kora --rpc-url https://api.devnet.solana.com --config apps/api/kora/kora.toml rpc start --signers-config apps/api/kora/signers.toml
 ```
 
 ### Step 3: Start the Daemon & Dashboard
