@@ -92,7 +92,7 @@ asgard init
 * **Security Prompt:** You will be forced to create a **Master Encryption Password**. It MUST be at least 16 characters long. This password encrypts the underlying wallets.
 
 ### Step 2: Start the Kora Paymaster Core
-Asgard achieves true gasless transactions by routing intents mapping to a fully functional **Kora JSON-RPC Server**. To run this prototype locally, Judges must install the Kora CLI and fund a local operator keypair:
+Asgard achieves true gasless transactions by routing intents mapping to a fully functional **Kora JSON-RPC Server**. To run this prototype locally, you must install the Kora CLI and fund a local operator keypair:
 
 ```bash
 # 1. Install Kora CLI globally
