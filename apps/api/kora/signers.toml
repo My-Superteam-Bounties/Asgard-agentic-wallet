@@ -1,0 +1,32 @@
+# Kora Signers Configuration for Asgard
+# This file specifies which keypair(s) sign as the gas fee-payer.
+# Reference: https://launch.solana.com/docs/kora/operators/signers
+
+[signers]
+# Strategy: 'single' for prototype, 'round_robin' for multi-signer production setup
+strategy = "single"
+
+[[signers.list]]
+type = "local"
+# For devnet prototype: provide your sponsor keypair as a base58-encoded private key
+# Generate a new keypair: solana-keygen new --outfile sponsor-keypair.json
+# Fund it with: solana airdrop 2 <address> --url devnet
+private_key = "${KORA_SPONSOR_PRIVATE_KEY}"
+
+# ─── Production Alternatives ─────────────────────────────────────────────────
+# For production, replace the above with one of these secure options:
+#
+# Turnkey (recommended):
+# [[signers.list]]
+# type = "turnkey"
+# api_public_key = "your-turnkey-api-public-key"
+# api_private_key = "${TURNKEY_API_PRIVATE_KEY}"
+# organization_id = "your-org-id"
+# private_key_id = "your-private-key-id"
+#
+# HashiCorp Vault:
+# [[signers.list]]
+# type = "hashicorp_vault"
+# url = "https://vault.yourcompany.com"
+# token = "${VAULT_TOKEN}"
+# key_name = "asgard-kora-signer"

@@ -1,0 +1,52 @@
+{
+    "default": {
+        "description": "Default policy profile for standard trading agents",
+        "maxDailySpendUSDC": 50,
+        "maxSingleTxUSDC": 25,
+        "maxTransactionsPerMinute": 5,
+        "maxTransactionsPerDay": 50,
+        "allowedPrograms": [
+            "11111111111111111111111111111111",
+            "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA",
+            "ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL",
+            "JUP6LkbZbjS1jKKwapdHNy74zcZ3tLUZoi5QNyVTaV4"
+        ],
+        "allowedTokens": [
+            "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+            "So11111111111111111111111111111111111111112"
+        ],
+        "allowTransfers": true,
+        "allowSwaps": true
+    },
+    "read_only": {
+        "description": "Read-only agent — balance queries only, no transactions",
+        "maxDailySpendUSDC": 0,
+        "maxSingleTxUSDC": 0,
+        "maxTransactionsPerMinute": 0,
+        "maxTransactionsPerDay": 0,
+        "allowedPrograms": [],
+        "allowedTokens": [],
+        "allowTransfers": false,
+        "allowSwaps": false
+    },
+    "high_volume": {
+        "description": "High-frequency trading agent with elevated limits",
+        "maxDailySpendUSDC": 500,
+        "maxSingleTxUSDC": 100,
+        "maxTransactionsPerMinute": 30,
+        "maxTransactionsPerDay": 500,
+        "allowedPrograms": [
+            "11111111111111111111111111111111",
+            "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA",
+            "ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL",
+            "JUP6LkbZbjS1jKKwapdHNy74zcZ3tLUZoi5QNyVTaV4"
+        ],
+        "allowedTokens": [
+            "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+            "So11111111111111111111111111111111111111112",
+            "DezXAZ8z7PnrnRJjz3wXBoRgixCa6xjnB7YaB1pPB263"
+        ],
+        "allowTransfers": true,
+        "allowSwaps": true
+    }
+}
