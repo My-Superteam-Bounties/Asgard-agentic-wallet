@@ -6,13 +6,19 @@ import {
 } from 'lucide-react';
 import { fetchAgents, provisionAgent, fetchBalance, fetchHistory, type Agent, type Balances } from '../api';
 
+import type { AsgardEvent } from '../hooks/useSocket';
+
 function shortAddr(addr: string) {
     return addr ? `${addr.slice(0, 6)}...${addr.slice(-4)}` : '—';
 }
 
 interface BalanceState { address: string; balances: Balances; history: any[] }
 
-export default function Agents() {
+interface Props {
+    socketEvents?: AsgardEvent[];
+}
+
+export default function Agents({ socketEvents = [] }: Props) {
     const [agents, setAgents] = useState<Agent[]>([]);
     const [loading, setLoading] = useState(true);
     const [showModal, setShowModal] = useState(false);
@@ -39,6 +45,15 @@ export default function Agents() {
     };
 
     useEffect(() => { void load(); }, []);
+
+    // Listen for real-time agent provisioning events
+    useEffect(() => {
+        if (!socketEvents.length) return;
+        const latest = socketEvents[0];
+        if (latest.type === 'agent:provisioned') {
+            void load();
+        }
+    }, [socketEvents]);
 
     const handleProvision = async (e: React.FormEvent) => {
         e.preventDefault();

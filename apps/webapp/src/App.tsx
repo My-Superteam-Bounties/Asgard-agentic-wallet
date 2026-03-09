@@ -5,6 +5,7 @@ import {
 } from 'lucide-react';
 import './index.css';
 import { fetchHealth, type GatewayHealth } from './api';
+import { useSocket } from './hooks/useSocket';
 import Dashboard from './pages/Dashboard';
 import Agents from './pages/Agents';
 import Execute from './pages/Execute';
@@ -44,6 +45,9 @@ export default function App() {
   const [health, setHealth] = useState<GatewayHealth | null>(null);
   const [online, setOnline] = useState(false);
 
+  // Real-time Socket.IO event stream
+  const { connected: socketConnected, events: socketEvents, clearEvents } = useSocket();
+
   const checkHealth = useCallback(async () => {
     try {
       const h = await fetchHealth();
@@ -54,6 +58,10 @@ export default function App() {
       setHealth(null);
     }
   }, []);
+
+  useEffect(() => {
+    void checkHealth();
+  }, [checkHealth]);
 
   useEffect(() => {
     document.documentElement.dataset.theme = theme;
@@ -146,8 +154,8 @@ export default function App() {
           </header>
 
           <div className="page-content">
-            {page === 'dashboard' && <Dashboard health={health} online={online} />}
-            {page === 'agents' && <Agents />}
+            {page === 'dashboard' && <Dashboard health={health} online={online} socketConnected={socketConnected} socketEvents={socketEvents} clearEvents={clearEvents} />}
+            {page === 'agents' && <Agents socketEvents={socketEvents} />}
             {page === 'execute' && <Execute />}
             {page === 'settings' && <Settings />}
           </div>

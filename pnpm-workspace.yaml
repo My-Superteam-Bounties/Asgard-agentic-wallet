@@ -1,0 +1,3 @@
+packages:
+  # apps contains the main deployable packages
+  - 'apps/*'

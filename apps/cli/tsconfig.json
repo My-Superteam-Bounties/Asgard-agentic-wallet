@@ -11,7 +11,10 @@
         "esModuleInterop": true,
         "skipLibCheck": true,
         "resolveJsonModule": true,
-        "sourceMap": true
+        "sourceMap": true,
+        "types": [
+            "node"
+        ]
     },
     "include": [
         "src/**/*"

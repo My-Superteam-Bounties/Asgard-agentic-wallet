@@ -1,0 +1,29 @@
+{
+  "002af318-4e2d-4478-9d4b-74e38e46ad4a": {
+    "agentId": "002af318-4e2d-4478-9d4b-74e38e46ad4a",
+    "name": "jup-trader",
+    "publicKey": "CixS135U1mh3nShdaUnqqubrvdifA7HqT2Gyobrrfw1k",
+    "apiKeyHash": "5cf0665b418aa4fc7a0c800d459583ae40d51372bc361fc5dd0b14778be948db",
+    "policyProfile": "default",
+    "createdAt": "2026-03-09T13:05:12.668Z",
+    "active": true
+  },
+  "258eb0f4-5e62-4eaa-85f5-1746ea7c1f91": {
+    "agentId": "258eb0f4-5e62-4eaa-85f5-1746ea7c1f91",
+    "name": "jup-trader",
+    "publicKey": "DtKV2VgCPW6PhqsNTQiaDsWs9MgC8rA2sTSfAmgSygp3",
+    "apiKeyHash": "f6e969d1e28fc26745bcc16884917c9f2f8fbab7a5b1c8a4893c3e35590c5d72",
+    "policyProfile": "default",
+    "createdAt": "2026-03-09T13:10:24.326Z",
+    "active": true
+  },
+  "79dbad55-af52-4906-84ab-af983d2581dc": {
+    "agentId": "79dbad55-af52-4906-84ab-af983d2581dc",
+    "name": "jup-trader",
+    "publicKey": "8xinNa7KkCerT7FaeEprBsAMbdcipNvPASNadH3ZiSZs",
+    "apiKeyHash": "d476e0dee3011c06ade464688ef80c0fbc976d0ea0b84047c2c37f4f39e6fa91",
+    "policyProfile": "default",
+    "createdAt": "2026-03-09T13:11:26.601Z",
+    "active": true
+  }
+}

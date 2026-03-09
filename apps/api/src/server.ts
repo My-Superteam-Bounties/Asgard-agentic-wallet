@@ -4,40 +4,50 @@
  * Wires up all routes, middleware, and singleton services.
  */
 
-import 'dotenv/config';
 import express, { Application } from 'express';
 import helmet from 'helmet';
 import morgan from 'morgan';
 import rateLimit from 'express-rate-limit';
 import cors from 'cors';
 import path from 'path';
+import os from 'os';
+import fs from 'fs';
+import dotenv from 'dotenv';
+import http from 'http';
+
+// Load from ~/.asgard/.env if it exists, otherwise fallback to local .env
+const asgardEnvPath = path.join(os.homedir(), '.asgard', '.env');
+if (fs.existsSync(asgardEnvPath)) {
+    dotenv.config({ path: asgardEnvPath });
+} else {
+    dotenv.config();
+}
 
 import { AsgardVault } from './vault/AsgardVault';
 import { PolicyEngine } from './policy/PolicyEngine';
 import { createAgentRouter } from './handlers/agentHandler';
 import { createWalletRouter } from './handlers/walletHandler';
 import { createIntentRouter } from './handlers/intentHandler';
+import { setupSocketServer } from './socketServer';
+import { eventBus } from './eventBus';
 
 // ─── Environment Validation ──────────────────────────────────────────────────
 
-const REQUIRED_ENV = ['ASGARD_MASTER_PASSWORD', 'SOLANA_RPC_URL', 'ASGARD_ADMIN_KEY'];
-for (const key of REQUIRED_ENV) {
-    if (!process.env[key]) {
-        console.error(`❌ Missing required environment variable: ${key}`);
-        console.error('   Copy .env.example to .env and fill in all values.');
-        process.exit(1);
-    }
+if (!process.env.ASGARD_MASTER_PASSWORD) {
+    console.error(`\n❌ [FATAL] Asgard Master Password is not configured.`);
+    console.error(`Please run 'asgard init' or 'npm run build && npx asgard init' from the CLI to initialize your secure local node.\n`);
+    process.exit(1);
+}
+
+if (!process.env.SOLANA_RPC_URL) {
+    console.error(`\n❌ [FATAL] SOLANA_RPC_URL is missing.`);
+    process.exit(1);
 }
 
 // ─── Singleton Services ──────────────────────────────────────────────────────
 
-const vault = new AsgardVault(
-    process.env.ASGARD_MASTER_PASSWORD!,
-    process.env.KEYSTORE_PATH || path.resolve(process.cwd(), 'keystore'),
-    process.env.SOLANA_RPC_URL!
-);
-
-const policy = new PolicyEngine();
+let vault: AsgardVault;
+let policy: PolicyEngine;
 
 // ─── Express App Setup ───────────────────────────────────────────────────────
 
@@ -68,9 +78,28 @@ app.use(
 
 // ─── Routes ──────────────────────────────────────────────────────────────────
 
-app.use('/v1/agents', createAgentRouter(vault, policy));
-app.use('/v1/wallet', createWalletRouter(vault));
-app.use('/v1/intent', createIntentRouter(vault, policy));
+app.use('/v1/agents', (req, res, next) => {
+    if (!vault) {
+        vault = new AsgardVault(process.env.ASGARD_MASTER_PASSWORD!, process.env.KEYSTORE_PATH || path.resolve(process.cwd(), 'keystore'), process.env.SOLANA_RPC_URL!);
+        policy = new PolicyEngine();
+    }
+    createAgentRouter(vault, policy)(req, res, next);
+});
+
+app.use('/v1/wallet', (req, res, next) => {
+    if (!vault) {
+        vault = new AsgardVault(process.env.ASGARD_MASTER_PASSWORD!, process.env.KEYSTORE_PATH || path.resolve(process.cwd(), 'keystore'), process.env.SOLANA_RPC_URL!);
+    }
+    createWalletRouter(vault)(req, res, next);
+});
+
+app.use('/v1/intent', (req, res, next) => {
+    if (!vault) {
+        vault = new AsgardVault(process.env.ASGARD_MASTER_PASSWORD!, process.env.KEYSTORE_PATH || path.resolve(process.cwd(), 'keystore'), process.env.SOLANA_RPC_URL!);
+        policy = new PolicyEngine();
+    }
+    createIntentRouter(vault, policy)(req, res, next);
+});
 
 // Health check
 app.get('/health', (_req, res) => {
@@ -83,9 +112,36 @@ app.get('/health', (_req, res) => {
     });
 });
 
-// 404 catch-all
-app.use((_req, res) => {
-    res.status(404).json({ error: 'NotFound', message: 'Endpoint not found.' });
+// Serve React Webapp statically from apps/webapp/dist
+const webappPath = path.resolve(__dirname, '../../webapp/dist');
+if (fs.existsSync(webappPath)) {
+    app.use(express.static(webappPath));
+}
+
+// 404 catch-all for API routes
+app.use('/v1/*', (_req, res) => {
+    res.status(404).json({ error: 'NotFound', message: 'API endpoint not found.' });
+});
+
+// For any other route, serve the React index.html (client-side routing fallback)
+app.get('*', (req, res) => {
+    const indexPath = path.join(webappPath, 'index.html');
+    if (fs.existsSync(indexPath)) {
+        let html = fs.readFileSync(indexPath, 'utf-8');
+
+        // Auto-inject the node key ONLY for local requests to prevent leaking keys
+        // if the user accidentally exposes port 8017 to the public internet
+        const ip = req.socket.remoteAddress;
+        if (ip === '127.0.0.1' || ip === '::ffff:127.0.0.1' || ip === '::1') {
+            html = html.replace(
+                '</head>',
+                `<script>window.ASGARD_NODE_KEY="${process.env.ASGARD_NODE_KEY}";</script></head>`
+            );
+        }
+        res.send(html);
+    } else {
+        res.status(404).send('Asgard Webapp is not built. Run npm run build -w apps/webapp');
+    }
 });
 
 // Global error handler
@@ -96,12 +152,25 @@ app.use((err: Error, _req: express.Request, res: express.Response, _next: expres
 
 // ─── Start Server ────────────────────────────────────────────────────────────
 
-const PORT = parseInt(process.env.PORT || '3000', 10);
-app.listen(PORT, () => {
-    console.log(`\n🛡️  Asgard Agentic Wallet Gateway`);
-    console.log(`✅  Server listening on http://localhost:${PORT}`);
+const PORT = parseInt(process.env.PORT || '8017', 10);
+
+// Create an HTTP server so Socket.IO can share the same port
+const httpServer = http.createServer(app);
+
+// Attach Socket.IO to the HTTP server
+setupSocketServer(httpServer);
+
+httpServer.listen(PORT, () => {
+    console.log(`\n🛡️  Asgard Agentic Wallet Daemon`);
+    console.log(`✅  API & Dashboard listening on http://localhost:${PORT}`);
     console.log(`🌐  Solana Network: ${process.env.SOLANA_NETWORK || 'devnet'}`);
-    console.log(`📁  Keystore: ${process.env.KEYSTORE_PATH || './keystore'}\n`);
+    console.log(`📁  Keystore: ${process.env.KEYSTORE_PATH || './keystore'}`);
+    console.log(`🔌  Socket.IO real-time events active\n`);
+
+    eventBus.emitEvent('gateway:started', {
+        port: PORT,
+        network: process.env.SOLANA_NETWORK || 'devnet',
+    });
 });
 
 export default app;

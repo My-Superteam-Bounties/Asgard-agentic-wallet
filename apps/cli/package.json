@@ -3,7 +3,8 @@
     "version": "1.0.0",
     "description": "Asgard CLI — Command-line interface for managing AI agent wallets",
     "bin": {
-        "asgard": "./dist/index.js"
+        "asgard": "./dist/index.js",
+        "x-wallet": "./dist/x-wallet.js"
     },
     "scripts": {
         "build": "tsc",
@@ -14,6 +15,7 @@
         "axios": "^1.7.9",
         "chalk": "^4.1.2",
         "cli-table3": "^0.6.5",
+        "commander": "^12.0.0",
         "dotenv": "^16.4.7",
         "inquirer": "^8.2.6",
         "ora": "^5.4.1"

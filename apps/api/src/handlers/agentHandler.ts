@@ -9,7 +9,8 @@ import { z } from 'zod';
 import { AsgardVault } from '../vault/AsgardVault';
 import { registerAgent, listAgents, getAgentById } from '../vault/AgentRegistry';
 import { PolicyEngine } from '../policy/PolicyEngine';
-import { requireAdminAuth, requireAgentAuth } from '../middleware/auth';
+import { requireNodeAuth, requireAgentAuth } from '../middleware/auth';
+import { eventBus } from '../eventBus';
 
 const VALID_PROFILES = ['default', 'read_only', 'high_volume'] as const;
 type PolicyProfileName = typeof VALID_PROFILES[number];
@@ -27,9 +28,9 @@ export function createAgentRouter(vault: AsgardVault, policy: PolicyEngine): Rou
      * Provision a new AI agent wallet.
      * Returns: agentId, walletAddress, apiKey, policyProfile
      *
-     * ⚠️ Admin only. The apiKey is returned ONCE. Store it securely.
+     * ⚠️ Requires Node Key. The apiKey is returned ONCE. Store it securely.
      */
-    router.post('/', async (req: Request, res: Response) => {
+    router.post('/', requireNodeAuth, async (req: Request, res: Response) => {
         try {
             const parsed = CreateAgentSchema.safeParse(req.body);
             if (!parsed.success) {
@@ -59,6 +60,14 @@ export function createAgentRouter(vault: AsgardVault, policy: PolicyEngine): Rou
                 createdAt: agentWallet.createdAt,
                 message: 'Store your apiKey securely. It cannot be retrieved again.',
             });
+
+            // Emit real-time event
+            eventBus.emitEvent('agent:provisioned', {
+                agentId: agentWallet.agentId,
+                name: agentWallet.name,
+                walletAddress: agentWallet.publicKey,
+                policyProfile,
+            });
         } catch (err: unknown) {
             const message = err instanceof Error ? err.message : String(err);
             res.status(500).json({ error: 'ProvisionFailed', message });
@@ -69,11 +78,15 @@ export function createAgentRouter(vault: AsgardVault, policy: PolicyEngine): Rou
      * GET /v1/agents
      * Lists all registered agents — no private data is returned.
      */
-    router.get('/', requireAdminAuth, (_req: Request, res: Response) => {
+    router.get('/', requireNodeAuth, (_req: Request, res: Response) => {
         try {
             // Strip apiKeyHash from all agent records before returning
             const agents = listAgents().map(({ apiKeyHash: _k, ...safe }) => safe);
             res.json({ count: agents.length, agents });
+
+            eventBus.emitEvent('agent:listed', {
+                count: agents.length,
+            });
         } catch (err: unknown) {
             const message = err instanceof Error ? err.message : String(err);
             res.status(500).json({ error: 'ListFailed', message });
@@ -106,6 +119,11 @@ export function createAgentRouter(vault: AsgardVault, policy: PolicyEngine): Rou
             const { apiKeyHash: _k, ...safeRecord } = record;
 
             res.json({ ...safeRecord, usage });
+
+            eventBus.emitEvent('agent:queried', {
+                agentId,
+                name: record.name,
+            });
         } catch (err: unknown) {
             const message = err instanceof Error ? err.message : String(err);
             res.status(500).json({ error: 'LookupFailed', message });

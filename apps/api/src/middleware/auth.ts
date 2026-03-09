@@ -60,26 +60,26 @@ export function requireAgentAuth(
 }
 
 /**
- * Admin-only authentication middleware.
- * Validates the Asgard Admin Key for agent provisioning endpoints.
+ * Node-level authentication middleware.
+ * Validates the Asgard Node Key for agent provisioning endpoints.
  */
-export function requireAdminAuth(
+export function requireNodeAuth(
     req: Request,
     res: Response,
     next: NextFunction
 ): void {
     const apiKey = extractBearerToken(req);
-    const adminKey = process.env.ASGARD_ADMIN_KEY;
+    const nodeKey = process.env.ASGARD_NODE_KEY;
 
-    if (!adminKey) {
-        res.status(500).json({ error: 'Server misconfiguration: ASGARD_ADMIN_KEY not set.' });
+    if (!nodeKey) {
+        res.status(500).json({ error: 'Server misconfiguration: ASGARD_NODE_KEY not set. Run `asgard init`.' });
         return;
     }
 
-    if (!apiKey || apiKey !== adminKey) {
+    if (!apiKey || apiKey !== nodeKey) {
         res.status(401).json({
             error: 'Unauthorized',
-            message: 'Invalid admin key.',
+            message: 'Invalid node key.',
         });
         return;
     }

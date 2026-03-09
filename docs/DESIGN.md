@@ -2,7 +2,7 @@
 
 > **"Think Solflare, but for AI Agents."**
 > 
-> A Wallet-as-a-Service protocol enabling autonomous AI agents to hold funds, sign transactions, manage liquidity, and interact with Solana dApps—without holding a private key and without human intervention.
+> A Local Companion Node (sidecar) protocol enabling autonomous AI agents to hold funds, sign transactions, manage liquidity, and interact with Solana dApps—without holding a private key and without human intervention.
 
 ---
 
@@ -36,12 +36,12 @@ The critical insight driving Asgard's design:
 
 ```
 ┌─────────────────────────────────────────────────────────┐
-│            THE BRAIN (AI Agent / n8n Workflow)           │
+│            THE BRAIN (AI Agent / python / bash)         │
 │  • Makes decisions based on prompts or triggers          │
 │  • Holds ONLY an Asgard API Key — never a private key    │
-│  • Submits JSON "Intents" to the Asgard Gateway         │
+│  • Executes local shell commands: `x-wallet swap ...`    │
 └─────────────────────┬───────────────────────────────────┘
-                      │  HTTP POST /v1/intent/swap
+                      │  CLI Intent (x-wallet)
                       ▼
 ┌─────────────────────────────────────────────────────────┐
 │          THE GATEWAY (Asgard Policy Engine)              │
@@ -177,9 +177,9 @@ An attacker steals an agent's API Key and impersonates it.
 
 **Asgard Defense:**
 - Every agent's API key is scoped to a specific set of permissions (e.g., `swap:write`, `transfer:write`, or read-only).
-- **IP Whitelisting**: The Asgard Gateway validates that the requesting IP matches the registered source (e.g., the n8n server's IP). Stolen keys used from unauthorized IPs are rejected.
-- **HMAC Signatures**: Sensitive operations require HMAC-signed request bodies with a timestamp to prevent replay attacks.
-- API keys can be revoked instantly via the admin API without affecting the underlying wallet.
+- **Localhost Trust**: Asgard is designed to run as a *local sidecar* on the exact same VPS or laptop as the agent itself.
+- **HMAC Signatures**: Sensitive operations require HMAC-signed request bodies with a timestamp to prevent replay attacks limit attack surfaces.
+- API keys can be revoked instantly via the Node Key without affecting the underlying wallet.
 
 ### Threat 4: Transaction Replay Attacks
 An attacker intercepts a signed transaction and attempts to re-broadcast it.
@@ -190,17 +190,15 @@ An attacker intercepts a signed transaction and attempts to re-broadcast it.
 
 ---
 
-## 🤖 n8n Integration: How External Agents Connect
+## 🤖 External Agent Integration
 
-Asgard operates as a standalone RESTful API, making it trivially straightforward to integrate with visual workflow platforms like n8n.
+Asgard operates as a local Daemon with a direct CLI interface (`x-wallet`). This makes it trivially straightforward to integrate with agents built in Python, TypeScript, or bash.
 
 **Workflow:**
-1. An n8n **Schedule Trigger** wakes the agent every 5 minutes.
-2. An **HTTP Request Node** fetches current USDC/SOL price.
-3. An **IF Node** (the AI decision: "is SOL price below my buy threshold?") decides whether to act.
-4. If the condition is met, a second **HTTP Request Node** fires a POST to `http://localhost:3000/v1/intent/swap` with an `Authorization: Bearer <AGENT_API_KEY>` header.
-5. Asgard processes the intent, the Kora node sponsors the gas, the transaction lands on Devnet.
-6. The transaction signature is returned to n8n and logged via a **Set Node** for monitoring.
+1. A python LangChain agent decides: "is SOL price below my buy threshold?"
+2. The agent executes a shell command: `subprocess.run("x-wallet swap --in USDC --out SOL -a 10", shell=True)`
+3. The `x-wallet` CLI streams the intent to the local daemon, which processes it, sponsors the gas via Kora, and lands the transaction on Devnet.
+4. The `x-wallet` CLI outputs strictly formatted JSON (the signature and result) to `stdout` which the Python script effortlessly parses.
 
 The agent never sees or stores the wallet private key. It only needs its Asgard API Key.
 
@@ -210,7 +208,7 @@ The agent never sees or stores the wallet private key. It only needs its Asgard 
 
 Asgard is designed as a multi-tenant service:
 
-- A single Asgard instance can manage **thousands of agent wallets** independently.
+- A single developer can run one Asgard local instance to manage **thousands of custom agent wallets** independently.
 - Each agent has its own: Keypair, API Key, Usage Limits, and Policy Ruleset.
 - Kora's Redis-based per-wallet usage limiting (`max_transactions = 100`) prevents any one rogue agent from bankrupting the gas sponsor.
 - Agent isolation means a compromised agent's API key cannot query, access, or transact on behalf of any other agent.

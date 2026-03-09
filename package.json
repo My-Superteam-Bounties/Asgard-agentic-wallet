@@ -1,18 +1,25 @@
 {
-    "name": "asgard",
+    "name": "@asgard/monorepo",
     "version": "1.0.0",
     "description": "Institutional-Grade Agentic Wallet-as-a-Service for AI Agents on Solana",
     "private": true,
-    "workspaces": [
-        "apps/*"
-    ],
     "scripts": {
-        "api": "npm run dev  --workspace=apps/api",
-        "cli": "npm run start --workspace=apps/cli",
-        "web": "npm run dev  --workspace=apps/webapp",
-        "build": "npm run build --workspaces --if-present"
+        "api": "pnpm --filter @asgard/api dev",
+        "cli": "pnpm --filter @asgard/cli start",
+        "web": "pnpm --filter @asgard/webapp dev",
+        "build": "pnpm -r build",
+        "demo": "node examples/multi-agent-demo.js",
+        "test:agents": "jest examples/langchain-agents/src"
     },
     "engines": {
         "node": ">=18.0.0"
+    },
+    "devDependencies": {
+        "@langchain/core": "^1.1.31",
+        "@types/jest": "^30.0.0",
+        "jest": "^30.2.0",
+        "langchain": "^1.2.30",
+        "ts-jest": "^29.4.6",
+        "zod": "^3.25.76"
     }
 }

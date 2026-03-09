@@ -4,17 +4,22 @@ import {
     TrendingUp, TrendingDown, Copy, CheckCircle2, XCircle,
 } from 'lucide-react';
 import { fetchAgents, type Agent, type GatewayHealth } from '../api';
+import ActivityFeed from '../components/ActivityFeed';
+import type { AsgardEvent } from '../hooks/useSocket';
 
 interface Props {
     health: GatewayHealth | null;
     online: boolean;
+    socketConnected: boolean;
+    socketEvents: AsgardEvent[];
+    clearEvents: () => void;
 }
 
 function shortAddr(addr: string) {
     return addr ? `${addr.slice(0, 6)}...${addr.slice(-4)}` : '—';
 }
 
-export default function Dashboard({ health, online }: Props) {
+export default function Dashboard({ health, online, socketConnected, socketEvents, clearEvents }: Props) {
     const [agents, setAgents] = useState<Agent[]>([]);
     const [loading, setLoading] = useState(true);
     const [copied, setCopied] = useState<string | null>(null);
@@ -25,6 +30,15 @@ export default function Dashboard({ health, online }: Props) {
             .catch(() => setAgents([]))
             .finally(() => setLoading(false));
     }, []);
+
+    // Listen for real-time agent provisioning events
+    useEffect(() => {
+        if (!socketEvents.length) return;
+        const latest = socketEvents[0];
+        if (latest.type === 'agent:provisioned') {
+            fetchAgents().then(setAgents).catch(console.error);
+        }
+    }, [socketEvents]);
 
     const active = agents.filter(a => a.active).length;
     const profiles: Record<string, number> = {};
@@ -42,7 +56,7 @@ export default function Dashboard({ health, online }: Props) {
                 <div className="alert error" style={{ marginBottom: 24 }}>
                     <XCircle size={15} style={{ flexShrink: 0, marginTop: 1 }} />
                     Cannot reach the Asgard Gateway. Make sure the API server is running at{' '}
-                    <code>{import.meta.env.VITE_API_URL || 'http://localhost:3000'}</code>.
+                    <code>{localStorage.getItem('asgard_url') || import.meta.env.VITE_API_URL || 'http://localhost:8017'}</code>.
                 </div>
             )}
 
@@ -154,6 +168,9 @@ export default function Dashboard({ health, online }: Props) {
                     </div>
                 )}
             </div>
+
+            {/* Live Activity Feed */}
+            <ActivityFeed events={socketEvents} connected={socketConnected} clearEvents={clearEvents} />
         </div>
     );
 }

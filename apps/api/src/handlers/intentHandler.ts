@@ -28,6 +28,7 @@ import {
     resolveMint,
     toRawAmount,
 } from '../services/JupiterService';
+import { eventBus } from '../eventBus';
 
 // ─── Validation Schemas ─────────────────────────────────────────────────────
 
@@ -94,9 +95,27 @@ export function createIntentRouter(vault: AsgardVault, policy: PolicyEngine): Ro
             });
 
             if (!policyResult.allowed) {
+                eventBus.emitEvent('policy:violation', {
+                    agentId: agent.agentId,
+                    agentName: agent.name,
+                    action: 'SWAP',
+                    inputToken,
+                    outputToken,
+                    amount,
+                    violation: policyResult.violation,
+                });
                 res.status(403).json({ error: 'PolicyViolation', ...policyResult.violation });
                 return;
             }
+
+            // Emit pending event
+            eventBus.emitEvent('intent:swap:pending', {
+                agentId: agent.agentId,
+                agentName: agent.name,
+                inputToken,
+                outputToken,
+                amount,
+            });
 
             // 2. Fetch swap quote from Jupiter
             const quote = await getSwapQuote(inputToken, outputToken, amount, slippageBps);
@@ -139,8 +158,25 @@ export function createIntentRouter(vault: AsgardVault, policy: PolicyEngine): Ro
                 priceImpactPct: quote.priceImpactPct,
                 explorerUrl: `https://explorer.solana.com/tx/${signature}?cluster=${process.env.SOLANA_NETWORK || 'devnet'}`,
             });
+
+            eventBus.emitEvent('intent:swap:success', {
+                agentId: agent.agentId,
+                agentName: agent.name,
+                signature,
+                inputAmount: amount,
+                inputToken,
+                outputAmount: quote.outputAmount,
+                outputToken,
+                priceImpactPct: quote.priceImpactPct,
+                explorerUrl: `https://explorer.solana.com/tx/${signature}?cluster=${process.env.SOLANA_NETWORK || 'devnet'}`,
+            });
         } catch (err: unknown) {
             const message = err instanceof Error ? err.message : String(err);
+            eventBus.emitEvent('intent:swap:failed', {
+                agentId: req.agent?.agentId,
+                agentName: req.agent?.name,
+                error: message,
+            });
             res.status(500).json({ error: 'SwapFailed', message });
         }
     });
@@ -171,9 +207,27 @@ export function createIntentRouter(vault: AsgardVault, policy: PolicyEngine): Ro
             });
 
             if (!policyResult.allowed) {
+                eventBus.emitEvent('policy:violation', {
+                    agentId: agent.agentId,
+                    agentName: agent.name,
+                    action: 'TRANSFER',
+                    token,
+                    amount,
+                    destination,
+                    violation: policyResult.violation,
+                });
                 res.status(403).json({ error: 'PolicyViolation', ...policyResult.violation });
                 return;
             }
+
+            // Emit pending event
+            eventBus.emitEvent('intent:transfer:pending', {
+                agentId: agent.agentId,
+                agentName: agent.name,
+                token,
+                amount,
+                destination,
+            });
 
             const agentPublicKey = vault.getAgentPublicKey(agent.agentId);
             const destinationKey = new PublicKey(destination);
@@ -237,8 +291,23 @@ export function createIntentRouter(vault: AsgardVault, policy: PolicyEngine): Ro
                 destination,
                 explorerUrl: `https://explorer.solana.com/tx/${signature}?cluster=${process.env.SOLANA_NETWORK || 'devnet'}`,
             });
+
+            eventBus.emitEvent('intent:transfer:success', {
+                agentId: agent.agentId,
+                agentName: agent.name,
+                signature,
+                token,
+                amount,
+                destination,
+                explorerUrl: `https://explorer.solana.com/tx/${signature}?cluster=${process.env.SOLANA_NETWORK || 'devnet'}`,
+            });
         } catch (err: unknown) {
             const message = err instanceof Error ? err.message : String(err);
+            eventBus.emitEvent('intent:transfer:failed', {
+                agentId: req.agent?.agentId,
+                agentName: req.agent?.name,
+                error: message,
+            });
             res.status(500).json({ error: 'TransferFailed', message });
         }
     });

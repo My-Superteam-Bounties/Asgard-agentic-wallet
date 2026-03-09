@@ -1,12 +1,16 @@
 import axios from 'axios';
 
-const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+export const api = axios.create({ timeout: 15000 });
 
-export const api = axios.create({ baseURL: BASE_URL, timeout: 15000 });
-
-// Attach admin key for admin-only calls
-export function adminHeaders() {
-    const key = localStorage.getItem('asgard_admin_key') || '';
+api.interceptors.request.use(config => {
+    const stored = localStorage.getItem('asgard_url');
+    const fallback = import.meta.env.VITE_API_URL || (import.meta.env.PROD ? '' : 'http://localhost:8017');
+    config.baseURL = stored || fallback;
+    return config;
+});
+// Attach node key for node-level auth calls
+export function nodeHeaders() {
+    const key = (window as any).ASGARD_NODE_KEY || localStorage.getItem('asgard_node_key') || localStorage.getItem('asgard_admin_key') || '';
     return { Authorization: `Bearer ${key}` };
 }
 
@@ -46,12 +50,12 @@ export async function fetchHealth(): Promise<GatewayHealth> {
 }
 
 export async function fetchAgents(): Promise<Agent[]> {
-    const { data } = await api.get('/v1/agents', { headers: adminHeaders() });
+    const { data } = await api.get('/v1/agents', { headers: nodeHeaders() });
     return data.agents;
 }
 
 export async function provisionAgent(name: string, policyProfile: string) {
-    const { data } = await api.post('/v1/agents', { name, policyProfile });
+    const { data } = await api.post('/v1/agents', { name, policyProfile }, { headers: nodeHeaders() });
     return data;
 }
 
@@ -65,14 +69,14 @@ export async function fetchHistory(agentId: string, apiKey: string, limit: numbe
     return data;
 }
 
-export async function executeSwap(agentId: string, apiKey: string, payload: {
+export async function executeSwap(apiKey: string, payload: {
     inputToken: string; outputToken: string; amount: number; slippageBps: number;
 }) {
     const { data } = await api.post('/v1/intent/swap', payload, { headers: agentHeaders(apiKey) });
     return data;
 }
 
-export async function executeTransfer(agentId: string, apiKey: string, payload: {
+export async function executeTransfer(apiKey: string, payload: {
     token: string; amount: number; destination: string;
 }) {
     const { data } = await api.post('/v1/intent/transfer', payload, { headers: agentHeaders(apiKey) });

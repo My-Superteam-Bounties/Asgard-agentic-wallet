@@ -2,14 +2,14 @@ import { useState } from 'react';
 import { Save, CheckCircle2, AlertTriangle, Github, FileText } from 'lucide-react';
 
 export default function Settings() {
-    const [apiUrl, setApiUrl] = useState(localStorage.getItem('asgard_url') || 'http://localhost:3000');
-    const [adminKey, setAdminKey] = useState(localStorage.getItem('asgard_admin_key') || '');
+    const [apiUrl, setApiUrl] = useState(localStorage.getItem('asgard_url') || 'http://localhost:8017');
+    const [nodeKey, setNodeKey] = useState((window as any).ASGARD_NODE_KEY || localStorage.getItem('asgard_node_key') || localStorage.getItem('asgard_admin_key') || '');
     const [network, setNetwork] = useState(localStorage.getItem('asgard_network') || 'devnet');
     const [saved, setSaved] = useState(false);
 
     const save = () => {
         localStorage.setItem('asgard_url', apiUrl);
-        localStorage.setItem('asgard_admin_key', adminKey);
+        localStorage.setItem('asgard_node_key', nodeKey);
         localStorage.setItem('asgard_network', network);
         setSaved(true);
         setTimeout(() => setSaved(false), 2500);
@@ -35,11 +35,11 @@ export default function Settings() {
                     </div>
                     <div className="form-group">
                         <label>Asgard API URL</label>
-                        <input value={apiUrl} onChange={e => setApiUrl(e.target.value)} placeholder="http://localhost:3000" />
+                        <input value={apiUrl} onChange={e => setApiUrl(e.target.value)} placeholder="http://localhost:8017" />
                     </div>
                     <div className="form-group">
-                        <label>Admin API Key</label>
-                        <input type="password" value={adminKey} onChange={e => setAdminKey(e.target.value)} placeholder="Your ASGARD_ADMIN_KEY" />
+                        <label>Node Key</label>
+                        <input type="password" value={nodeKey} onChange={e => setNodeKey(e.target.value)} placeholder="Your ASGARD_NODE_KEY" />
                     </div>
                     <div className="form-group">
                         <label>Network</label>
@@ -85,7 +85,7 @@ export default function Settings() {
 
             <div style={{ marginTop: 16, fontSize: 12, color: 'var(--muted)', display: 'flex', alignItems: 'flex-start', gap: 6 }}>
                 <AlertTriangle size={13} style={{ flexShrink: 0, marginTop: 1 }} />
-                Settings are stored in your browser's local storage. Do not store production admin keys in a shared browser.
+                Settings are stored in your browser's local storage. Do not store production node keys in a shared browser.
             </div>
         </div>
     );

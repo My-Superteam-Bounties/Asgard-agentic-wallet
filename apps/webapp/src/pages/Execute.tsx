@@ -41,12 +41,12 @@ export default function Execute() {
         setError(''); setResult(null); setLoading(true);
         try {
             if (tab === 'swap') {
-                const res = await executeSwap(agentId, apiKey, {
+                const res = await executeSwap(apiKey, {
                     inputToken, outputToken, amount: parseFloat(swapAmount), slippageBps: parseInt(slippage),
                 });
                 setResult(res);
             } else {
-                const res = await executeTransfer(agentId, apiKey, {
+                const res = await executeTransfer(apiKey, {
                     token: transferToken, amount: parseFloat(transferAmount), destination,
                 });
                 setResult(res);

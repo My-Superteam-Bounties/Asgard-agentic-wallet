@@ -9,6 +9,7 @@ import { getAssociatedTokenAddress, getAccount } from '@solana/spl-token';
 import { AsgardVault } from '../vault/AsgardVault';
 import { requireAgentAuth } from '../middleware/auth';
 import { TOKEN_MINTS, getDecimals } from '../services/JupiterService';
+import { eventBus } from '../eventBus';
 
 const TRACKED_TOKENS = ['USDC', 'BONK'] as const;
 
@@ -61,6 +62,12 @@ export function createWalletRouter(vault: AsgardVault): Router {
                 },
                 timestamp: new Date().toISOString(),
             });
+
+            eventBus.emitEvent('wallet:balance:queried', {
+                agentId,
+                address: publicKey.toBase58(),
+                balances: { SOL: solBalance, ...tokenBalances },
+            });
         } catch (err: unknown) {
             const message = err instanceof Error ? err.message : String(err);
             res.status(500).json({ error: 'BalanceFetchFailed', message });
@@ -103,6 +110,12 @@ export function createWalletRouter(vault: AsgardVault): Router {
                 address: publicKey.toBase58(),
                 history,
                 timestamp: new Date().toISOString()
+            });
+
+            eventBus.emitEvent('wallet:history:queried', {
+                agentId,
+                address: publicKey.toBase58(),
+                transactionCount: history.length,
             });
         } catch (err: unknown) {
             const message = err instanceof Error ? err.message : String(err);
