@@ -91,11 +91,11 @@ function createAgentRouter(vault, policy) {
      * Gets metadata + current usage for a specific agent.
      * Agents can only query their own record.
      */
-    router.get('/:agentId', auth_1.requireAgentAuth, (req, res) => {
+    router.get('/:agentId', auth_1.requireNodeOrAgentAuth, (req, res) => {
         try {
-            const { agentId } = req.params;
-            // Agents may only query their own record
-            if (req.agent?.agentId !== agentId) {
+            const agentId = req.params.agentId;
+            // Agents may only query their own record. Admins (req.agent is undefined) can query any.
+            if (req.agent && req.agent.agentId !== agentId) {
                 res.status(403).json({ error: 'Forbidden', message: 'Agents can only access their own records.' });
                 return;
             }

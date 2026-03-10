@@ -18,6 +18,9 @@ const os_1 = __importDefault(require("os"));
 const fs_1 = __importDefault(require("fs"));
 const dotenv_1 = __importDefault(require("dotenv"));
 const http_1 = __importDefault(require("http"));
+const dns_1 = __importDefault(require("dns"));
+// Fix Node 18+ undici fetch failing randomly on IPv6 resolution against Cloudflare
+dns_1.default.setDefaultResultOrder('ipv4first');
 // Load from ~/.asgard/.env if it exists, otherwise fallback to local .env
 const asgardEnvPath = path_1.default.join(os_1.default.homedir(), '.asgard', '.env');
 if (fs_1.default.existsSync(asgardEnvPath)) {

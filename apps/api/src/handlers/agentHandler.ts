@@ -9,7 +9,7 @@ import { z } from 'zod';
 import { AsgardVault } from '../vault/AsgardVault';
 import { registerAgent, listAgents, getAgentById, updateAgentPolicy } from '../vault/AgentRegistry';
 import { PolicyEngine } from '../policy/PolicyEngine';
-import { requireNodeAuth, requireAgentAuth } from '../middleware/auth';
+import { requireNodeAuth, requireAgentAuth, requireNodeOrAgentAuth } from '../middleware/auth';
 import { eventBus } from '../eventBus';
 
 const VALID_PROFILES = ['default', 'read_only', 'high_volume'] as const;
@@ -109,13 +109,13 @@ export function createAgentRouter(vault: AsgardVault, policy: PolicyEngine): Rou
      * Gets metadata + current usage for a specific agent.
      * Agents can only query their own record.
      */
-    router.get('/:agentId', requireAgentAuth, (req: Request, res: Response) => {
+    router.get('/:agentId', requireNodeOrAgentAuth, (req: Request, res: Response) => {
 
         try {
-            const { agentId } = req.params;
+            const agentId = req.params.agentId as string;
 
-            // Agents may only query their own record
-            if (req.agent?.agentId !== agentId) {
+            // Agents may only query their own record. Admins (req.agent is undefined) can query any.
+            if (req.agent && req.agent.agentId !== agentId) {
                 res.status(403).json({ error: 'Forbidden', message: 'Agents can only access their own records.' });
                 return;
             }

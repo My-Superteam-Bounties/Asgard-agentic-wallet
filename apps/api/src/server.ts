@@ -14,6 +14,10 @@ import os from 'os';
 import fs from 'fs';
 import dotenv from 'dotenv';
 import http from 'http';
+import dns from 'dns';
+
+// Fix Node 18+ undici fetch failing randomly on IPv6 resolution against Cloudflare
+dns.setDefaultResultOrder('ipv4first');
 
 // Load from ~/.asgard/.env if it exists, otherwise fallback to local .env
 const asgardEnvPath = path.join(os.homedir(), '.asgard', '.env');
