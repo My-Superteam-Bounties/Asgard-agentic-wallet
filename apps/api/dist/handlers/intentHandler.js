@@ -12,7 +12,6 @@ const express_1 = require("express");
 const zod_1 = require("zod");
 const web3_js_1 = require("@solana/web3.js");
 const spl_token_1 = require("@solana/spl-token");
-const web3_js_2 = require("@solana/web3.js");
 const auth_1 = require("../middleware/auth");
 const JupiterService_1 = require("../services/JupiterService");
 const eventBus_1 = require("../eventBus");
@@ -28,23 +27,7 @@ const TransferIntentSchema = zod_1.z.object({
     amount: zod_1.z.number().positive(),
     destination: zod_1.z.string().min(32).max(44),
 });
-// ─── Helper: get Kora feePayer keypair from env ──────────────────────────────
-function getKoraSponsorKeypair() {
-    const key = process.env.KORA_SPONSOR_PRIVATE_KEY;
-    if (!key)
-        throw new Error('KORA_SPONSOR_PRIVATE_KEY is not set in environment.');
-    // Support both base58 and base64 encoded keys
-    try {
-        // Try as a JSON array first (solana-keygen format)
-        const arr = JSON.parse(key);
-        return web3_js_2.Keypair.fromSecretKey(Uint8Array.from(arr));
-    }
-    catch {
-        // Fall back to base64
-        const bytes = Buffer.from(key, 'base64');
-        return web3_js_2.Keypair.fromSecretKey(bytes);
-    }
-}
+const KoraClient_1 = require("../services/KoraClient");
 // ─── Router Factory ──────────────────────────────────────────────────────────
 function createIntentRouter(vault, policy) {
     const router = (0, express_1.Router)();
@@ -93,20 +76,16 @@ function createIntentRouter(vault, policy) {
             });
             // 2. Fetch swap quote from Jupiter
             const quote = await (0, JupiterService_1.getSwapQuote)(inputToken, outputToken, amount, slippageBps);
-            // 3. Build the swap transaction (with Kora feePayer)
+            // 3. Build the swap transaction (with Kora feePayer from RPC)
             const agentPublicKey = vault.getAgentPublicKey(agent.agentId);
-            const sponsorKeypair = getKoraSponsorKeypair();
-            const swapTx = await (0, JupiterService_1.buildSwapTransaction)(quote, agentPublicKey, sponsorKeypair.publicKey);
+            const payerPubkeyBase58 = await KoraClient_1.koraClient.getPayerSigner();
+            const sponsorPublicKey = new web3_js_1.PublicKey(payerPubkeyBase58);
+            const swapTx = await (0, JupiterService_1.buildSwapTransaction)(quote, agentPublicKey, sponsorPublicKey);
             // 4. Sign with the agent's vault key (transiently decrypted, zeroed after)
             const agentSignedTx = await vault.signTransaction(agent.agentId, swapTx);
-            // 5. Co-sign with Kora sponsor as feePayer
-            agentSignedTx.sign([sponsorKeypair]);
-            // 6. Broadcast to Solana
-            const rawTx = agentSignedTx.serialize();
-            const signature = await connection.sendRawTransaction(rawTx, {
-                skipPreflight: false,
-                maxRetries: 3,
-            });
+            // 5. Send to Kora Paymaster for co-signing and broadcast
+            const rawTxBase64 = Buffer.from(agentSignedTx.serialize()).toString('base64');
+            const signature = await KoraClient_1.koraClient.signAndSendTransaction(rawTxBase64);
             await connection.confirmTransaction(signature, 'confirmed');
             // 7. Record usage after confirmed broadcast
             policy.recordUsage(agent.agentId, amount);
@@ -185,7 +164,8 @@ function createIntentRouter(vault, policy) {
             });
             const agentPublicKey = vault.getAgentPublicKey(agent.agentId);
             const destinationKey = new web3_js_1.PublicKey(destination);
-            const sponsorKeypair = getKoraSponsorKeypair();
+            const payerPubkeyBase58 = await KoraClient_1.koraClient.getPayerSigner();
+            const sponsorPublicKey = new web3_js_1.PublicKey(payerPubkeyBase58);
             let transferInstruction;
             if (token === 'SOL') {
                 // Native SOL transfer
@@ -205,19 +185,14 @@ function createIntentRouter(vault, policy) {
                 transferInstruction = (0, spl_token_1.createTransferCheckedInstruction)(sourceAta, mintAddress, destAta, agentPublicKey, rawAmount, mintInfo.decimals);
             }
             // 2. Build versioned transaction with Kora feePayer
-            const tx = await vault.buildTransaction(sponsorKeypair.publicKey, [
+            const tx = await vault.buildTransaction(sponsorPublicKey, [
                 transferInstruction,
             ]);
             // 3. Sign with agent vault key
             const signedTx = await vault.signTransaction(agent.agentId, tx);
-            // 4. Co-sign with Kora sponsor
-            signedTx.sign([sponsorKeypair]);
-            // 5. Broadcast
-            const rawTx = signedTx.serialize();
-            const signature = await connection.sendRawTransaction(rawTx, {
-                skipPreflight: false,
-                maxRetries: 3,
-            });
+            // 4. Send to Kora Paymaster for co-signing and broadcast
+            const rawTxBase64 = Buffer.from(signedTx.serialize()).toString('base64');
+            const signature = await KoraClient_1.koraClient.signAndSendTransaction(rawTxBase64);
             await connection.confirmTransaction(signature, 'confirmed');
             // 6. Record usage
             policy.recordUsage(agent.agentId, amount);

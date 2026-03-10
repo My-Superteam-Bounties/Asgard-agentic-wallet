@@ -172,6 +172,20 @@ Asgard treats AI agents as highly volatile, untrusted actors.
 
 ---
 
+## 📜 Enforcing AI Spending Policies
+
+While AI agents independently formulate transactions, the Asgard node strictly enforces immutable boundaries on their behavior before signing payload intents. 
+
+Humans maintain complete control over these constraints via the `apps/api/config/agent_policies.json` configuration file. You can define multiple distinct profiles (e.g., `default`, `read_only`, `high_volume`) and aggressively tune:
+- **Velocity Limits:** Restrict the maximum number of transactions an agent is allowed to execute per minute or day (`maxTransactionsPerMinute`).
+- **Volume Ceilings:** Specify strict single-transaction and daily maximum spend amounts in USDC (`maxDailySpendUSDC`).
+- **Protocol Whitelists:** Explicitly lock agents down to specific smart contract programs and token mints (`allowedPrograms`, `allowedTokens`).
+- **Action Toggles:** Blanket permit or block actions outright (`allowTransfers`, `allowSwaps`).
+
+When you provision a new agent, Asgard natively links their ID to a policy. Every single JSON-RPC execution request sent by the agent is aggressively intercepted and validated by the `PolicyEngine` against these exact config constraints. If an AI goes rogue or attempts to drain the wallet, Asgard catches the violation and structurally rejects the signature request locally. 
+
+---
+
 ## 📄 License
 
 MIT License. See `LICENSE` for details.

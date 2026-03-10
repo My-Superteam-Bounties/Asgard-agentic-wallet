@@ -1,29 +1,56 @@
 {
-  "002af318-4e2d-4478-9d4b-74e38e46ad4a": {
-    "agentId": "002af318-4e2d-4478-9d4b-74e38e46ad4a",
-    "name": "jup-trader",
-    "publicKey": "CixS135U1mh3nShdaUnqqubrvdifA7HqT2Gyobrrfw1k",
-    "apiKeyHash": "5cf0665b418aa4fc7a0c800d459583ae40d51372bc361fc5dd0b14778be948db",
+  "e6649b76-0db1-473c-94d4-db6b948e6755": {
+    "agentId": "e6649b76-0db1-473c-94d4-db6b948e6755",
+    "name": "Alice-Trader",
+    "publicKey": "nf9BYQtRoxJqmSDuytkrGvU3nCYiTYPzV5zMLRkBYbF",
+    "apiKeyHash": "e3b4ce459f453fff7ede0c3145c7988e1755251c3c0cd6ba84d420baced9783c",
     "policyProfile": "default",
-    "createdAt": "2026-03-09T13:05:12.668Z",
+    "createdAt": "2026-03-09T22:35:12.302Z",
     "active": true
   },
-  "258eb0f4-5e62-4eaa-85f5-1746ea7c1f91": {
-    "agentId": "258eb0f4-5e62-4eaa-85f5-1746ea7c1f91",
-    "name": "jup-trader",
-    "publicKey": "DtKV2VgCPW6PhqsNTQiaDsWs9MgC8rA2sTSfAmgSygp3",
-    "apiKeyHash": "f6e969d1e28fc26745bcc16884917c9f2f8fbab7a5b1c8a4893c3e35590c5d72",
+  "f1549a03-39b0-4203-8829-d31b16be6c7c": {
+    "agentId": "f1549a03-39b0-4203-8829-d31b16be6c7c",
+    "name": "Bob-Liquidity",
+    "publicKey": "2T89NcC5Rs1Mo3xdmgeRPdZ6js6Dm2aKQvG5DqTakQ85",
+    "apiKeyHash": "045cb5c991e33500a99b7edb1f49a034f22a8f9c5c8f370812d9d8ca8d068467",
     "policyProfile": "default",
-    "createdAt": "2026-03-09T13:10:24.326Z",
+    "createdAt": "2026-03-09T22:35:17.979Z",
     "active": true
   },
-  "79dbad55-af52-4906-84ab-af983d2581dc": {
-    "agentId": "79dbad55-af52-4906-84ab-af983d2581dc",
-    "name": "jup-trader",
-    "publicKey": "8xinNa7KkCerT7FaeEprBsAMbdcipNvPASNadH3ZiSZs",
-    "apiKeyHash": "d476e0dee3011c06ade464688ef80c0fbc976d0ea0b84047c2c37f4f39e6fa91",
+  "85791435-eea2-4702-b395-3f02c2b05f9f": {
+    "agentId": "85791435-eea2-4702-b395-3f02c2b05f9f",
+    "name": "Charlie-Arber",
+    "publicKey": "BjuqvjxX7KyewKQgisNR4UZzkpUrpG7iZWcYyiuz73DX",
+    "apiKeyHash": "8fe6d5cf9e387fd9e68269bafaef36a9feee6c142f0ed8e24bc6e43b066a4329",
     "policyProfile": "default",
-    "createdAt": "2026-03-09T13:11:26.601Z",
+    "createdAt": "2026-03-09T22:35:21.057Z",
+    "active": true
+  },
+  "7f4e2a64-0392-4ccc-84a6-91bafc41f27a": {
+    "agentId": "7f4e2a64-0392-4ccc-84a6-91bafc41f27a",
+    "name": "Alice-Trader",
+    "publicKey": "5VestumJGSYqNAadyPyx4vDtFVuLAbg3gXAcEnJEKx79",
+    "apiKeyHash": "8d24b2bb9c46b2001bdbaba56c82e3e29beac79481e7c419967e0f8afe2378a4",
+    "policyProfile": "default",
+    "createdAt": "2026-03-10T07:30:30.600Z",
+    "active": true
+  },
+  "7d8a2f0a-f9e6-4e7e-965d-67622ee50136": {
+    "agentId": "7d8a2f0a-f9e6-4e7e-965d-67622ee50136",
+    "name": "Bob-Liquidity",
+    "publicKey": "GRtpomHHRkSJpdf3TX7VGaShyfveP2ERHPAwXspHi7gz",
+    "apiKeyHash": "01d41b7c0535d30e30554e3b181b16ad71d9d420cfc69bfa29f3d186bb0c5277",
+    "policyProfile": "default",
+    "createdAt": "2026-03-10T07:30:31.487Z",
+    "active": true
+  },
+  "5554266b-f79d-4718-9011-d34d02d9c3c3": {
+    "agentId": "5554266b-f79d-4718-9011-d34d02d9c3c3",
+    "name": "Charlie-Arber",
+    "publicKey": "6e4174RvW2dymWJXseckrZ1ubp6QsdMQmRzSdSNBuZwZ",
+    "apiKeyHash": "a716be11ef71d6d09856e1645cb5fe149ebb569fa42b854a0cc786d075092d29",
+    "policyProfile": "default",
+    "createdAt": "2026-03-10T07:30:32.384Z",
     "active": true
   }
 }

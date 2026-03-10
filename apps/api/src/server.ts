@@ -33,6 +33,12 @@ import { eventBus } from './eventBus';
 
 // ─── Environment Validation ──────────────────────────────────────────────────
 
+const resolveKeystorePath = (p?: string) => {
+    if (!p) return path.join(os.homedir(), '.asgard', 'keystore');
+    if (p.startsWith('~/')) return path.join(os.homedir(), p.slice(2));
+    return path.resolve(process.cwd(), p);
+};
+
 if (!process.env.ASGARD_MASTER_PASSWORD) {
     console.error(`\n❌ [FATAL] Asgard Master Password is not configured.`);
     console.error(`Please run 'asgard init' or 'npm run build && npx asgard init' from the CLI to initialize your secure local node.\n`);
@@ -80,7 +86,7 @@ app.use(
 
 app.use('/v1/agents', (req, res, next) => {
     if (!vault) {
-        vault = new AsgardVault(process.env.ASGARD_MASTER_PASSWORD!, process.env.KEYSTORE_PATH || path.resolve(process.cwd(), 'keystore'), process.env.SOLANA_RPC_URL!);
+        vault = new AsgardVault(process.env.ASGARD_MASTER_PASSWORD!, resolveKeystorePath(process.env.KEYSTORE_PATH), process.env.SOLANA_RPC_URL!);
         policy = new PolicyEngine();
     }
     createAgentRouter(vault, policy)(req, res, next);
@@ -88,14 +94,14 @@ app.use('/v1/agents', (req, res, next) => {
 
 app.use('/v1/wallet', (req, res, next) => {
     if (!vault) {
-        vault = new AsgardVault(process.env.ASGARD_MASTER_PASSWORD!, process.env.KEYSTORE_PATH || path.resolve(process.cwd(), 'keystore'), process.env.SOLANA_RPC_URL!);
+        vault = new AsgardVault(process.env.ASGARD_MASTER_PASSWORD!, resolveKeystorePath(process.env.KEYSTORE_PATH), process.env.SOLANA_RPC_URL!);
     }
     createWalletRouter(vault)(req, res, next);
 });
 
 app.use('/v1/intent', (req, res, next) => {
     if (!vault) {
-        vault = new AsgardVault(process.env.ASGARD_MASTER_PASSWORD!, process.env.KEYSTORE_PATH || path.resolve(process.cwd(), 'keystore'), process.env.SOLANA_RPC_URL!);
+        vault = new AsgardVault(process.env.ASGARD_MASTER_PASSWORD!, resolveKeystorePath(process.env.KEYSTORE_PATH), process.env.SOLANA_RPC_URL!);
         policy = new PolicyEngine();
     }
     createIntentRouter(vault, policy)(req, res, next);

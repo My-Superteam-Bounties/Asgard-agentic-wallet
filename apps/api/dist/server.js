@@ -34,6 +34,13 @@ const intentHandler_1 = require("./handlers/intentHandler");
 const socketServer_1 = require("./socketServer");
 const eventBus_1 = require("./eventBus");
 // ─── Environment Validation ──────────────────────────────────────────────────
+const resolveKeystorePath = (p) => {
+    if (!p)
+        return path_1.default.join(os_1.default.homedir(), '.asgard', 'keystore');
+    if (p.startsWith('~/'))
+        return path_1.default.join(os_1.default.homedir(), p.slice(2));
+    return path_1.default.resolve(process.cwd(), p);
+};
 if (!process.env.ASGARD_MASTER_PASSWORD) {
     console.error(`\n❌ [FATAL] Asgard Master Password is not configured.`);
     console.error(`Please run 'asgard init' or 'npm run build && npx asgard init' from the CLI to initialize your secure local node.\n`);
@@ -67,20 +74,20 @@ app.use((0, express_rate_limit_1.default)({
 // ─── Routes ──────────────────────────────────────────────────────────────────
 app.use('/v1/agents', (req, res, next) => {
     if (!vault) {
-        vault = new AsgardVault_1.AsgardVault(process.env.ASGARD_MASTER_PASSWORD, process.env.KEYSTORE_PATH || path_1.default.resolve(process.cwd(), 'keystore'), process.env.SOLANA_RPC_URL);
+        vault = new AsgardVault_1.AsgardVault(process.env.ASGARD_MASTER_PASSWORD, resolveKeystorePath(process.env.KEYSTORE_PATH), process.env.SOLANA_RPC_URL);
         policy = new PolicyEngine_1.PolicyEngine();
     }
     (0, agentHandler_1.createAgentRouter)(vault, policy)(req, res, next);
 });
 app.use('/v1/wallet', (req, res, next) => {
     if (!vault) {
-        vault = new AsgardVault_1.AsgardVault(process.env.ASGARD_MASTER_PASSWORD, process.env.KEYSTORE_PATH || path_1.default.resolve(process.cwd(), 'keystore'), process.env.SOLANA_RPC_URL);
+        vault = new AsgardVault_1.AsgardVault(process.env.ASGARD_MASTER_PASSWORD, resolveKeystorePath(process.env.KEYSTORE_PATH), process.env.SOLANA_RPC_URL);
     }
     (0, walletHandler_1.createWalletRouter)(vault)(req, res, next);
 });
 app.use('/v1/intent', (req, res, next) => {
     if (!vault) {
-        vault = new AsgardVault_1.AsgardVault(process.env.ASGARD_MASTER_PASSWORD, process.env.KEYSTORE_PATH || path_1.default.resolve(process.cwd(), 'keystore'), process.env.SOLANA_RPC_URL);
+        vault = new AsgardVault_1.AsgardVault(process.env.ASGARD_MASTER_PASSWORD, resolveKeystorePath(process.env.KEYSTORE_PATH), process.env.SOLANA_RPC_URL);
         policy = new PolicyEngine_1.PolicyEngine();
     }
     (0, intentHandler_1.createIntentRouter)(vault, policy)(req, res, next);

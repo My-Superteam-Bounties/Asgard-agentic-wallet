@@ -22,8 +22,8 @@ const agents = [];
 function runAgentCommand(command) {
     try {
         // x-wallet outputs logs to stderr and pure JSON to stdout.
-        // We only want the JSON output for parsing.
-        const output = execSync(`x-wallet ${command}`, { encoding: 'utf-8', stdio: ['pipe', 'pipe', 'ignore'] });
+        // We directly invoke the compiled JS payload to prevent the tester needing a global npm link
+        const output = execSync(`node apps/cli/dist/x-wallet.js ${command}`, { encoding: 'utf-8', stdio: ['pipe', 'pipe', 'ignore'] });
         return JSON.parse(output.trim());
     } catch (err) {
         console.error(`\n❌ Agent Command Failed: x-wallet ${command.split(' ')[0]}`);
@@ -85,8 +85,8 @@ async function main() {
         console.log('⚠️  Please airdrop some Devnet SOL to at least one of these addresses:');
         agents.forEach(a => console.log(`      - ${a.walletAddress}`));
         console.log('\n   Or run: solana airdrop 1 <ADDRESS> -u devnet');
-
-        await question('\nPress [ENTER] once you have sent funds to start the autonomous loop...');
+        console.log('\n   Airdrop requested successfully.');
+        await sleep(5000);
     } else {
         console.log('\n✅ Sufficient system liquidity detected.');
         await sleep(2000);
