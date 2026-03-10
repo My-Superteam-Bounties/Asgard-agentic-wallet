@@ -1,0 +1,38 @@
+{
+  "c8f71f72-398f-460e-b140-b19b08f46a57": {
+    "agentId": "c8f71f72-398f-460e-b140-b19b08f46a57",
+    "name": "Hay bot",
+    "publicKey": "3jk4Xspf4CzPXB3QyBFHJ87vFn92qr3fbd1FsDeH7N5e",
+    "apiKeyHash": "7565180053f994bc304d130ef8a0156055c0b3d74519cdb3193febbab75813e1",
+    "policyProfile": "default",
+    "createdAt": "2026-03-10T10:15:21.257Z",
+    "active": true
+  },
+  "849728d9-36fc-458e-9a54-9f3fa8053097": {
+    "agentId": "849728d9-36fc-458e-9a54-9f3fa8053097",
+    "name": "Ruby agented",
+    "publicKey": "7JErqX9HgFdEpeXUibUHxgSa5ndNVH1ruA9BxCjzpmTp",
+    "apiKeyHash": "f4c1c6cbd1a5683e60b141af9e1f94f807680b2fa901d5edbb5d384e21bf86ce",
+    "policyProfile": "default",
+    "createdAt": "2026-03-10T10:17:54.111Z",
+    "active": true
+  },
+  "1f9cc2ea-3969-4ac0-a51b-c9457ff26c9d": {
+    "agentId": "1f9cc2ea-3969-4ac0-a51b-c9457ff26c9d",
+    "name": "Openclaw worker bot",
+    "publicKey": "62vMG7xQXDaL6uTLj19F3k2RzFwm5gtiBUESgLmYWQ6u",
+    "apiKeyHash": "1c4279984eb56327ae35508fa94e8ddeb656181baed3770df3c08b030453c3cd",
+    "policyProfile": "default",
+    "createdAt": "2026-03-10T10:19:02.339Z",
+    "active": true
+  },
+  "03179d9f-d0de-4b24-a741-44adbc485635": {
+    "agentId": "03179d9f-d0de-4b24-a741-44adbc485635",
+    "name": "Jenka bot",
+    "publicKey": "DFXzR29BMNsgZuQnRLAaj4Cv5SyMCEetofsnF4WmFRY7",
+    "apiKeyHash": "f5f0ac9d976d792b95dabedb382cf5be2d033be1063e3bfa4e79aede6ebb355f",
+    "policyProfile": "default",
+    "createdAt": "2026-03-10T10:21:29.048Z",
+    "active": true
+  }
+}

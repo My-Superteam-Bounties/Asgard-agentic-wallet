@@ -44,6 +44,9 @@ export function requireAgentAuth(
         return;
     }
 
+    console.log("Fetching agent id")
+    console.log(apiKey)
+
     const agent = findAgentByApiKey(apiKey);
 
     if (!agent) {

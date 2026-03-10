@@ -89,6 +89,7 @@ function registerAgent(agentId, name, publicKey, apiKey, policyProfile, customPo
 function findAgentByApiKey(apiKey) {
     const registry = loadRegistry();
     const keyHash = hashApiKey(apiKey);
+    console.log("Key hash", keyHash);
     const record = Object.values(registry).find((r) => r.apiKeyHash === keyHash && r.active);
     return record || null;
 }

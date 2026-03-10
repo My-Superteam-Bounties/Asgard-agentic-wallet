@@ -31,6 +31,8 @@ function requireAgentAuth(req, res, next) {
         });
         return;
     }
+    console.log("Fetching agent id");
+    console.log(apiKey);
     const agent = (0, AgentRegistry_1.findAgentByApiKey)(apiKey);
     if (!agent) {
         res.status(401).json({

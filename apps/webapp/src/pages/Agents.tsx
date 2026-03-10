@@ -1,10 +1,10 @@
 import { useState, useEffect } from 'react';
 import {
     Plus, Bot, Copy, CheckCircle2, XCircle,
-    TrendingUp, TrendingDown, Layers, Wallet, Eye, EyeOff,
+    TrendingUp, TrendingDown, Layers, Eye, EyeOff,
     AlertTriangle,
 } from 'lucide-react';
-import { fetchAgents, provisionAgent, fetchBalance, fetchHistory, type Agent, type Balances } from '../api';
+import { fetchAgents, provisionAgent, type Agent } from '../api';
 import AgentDetail from './AgentDetail';
 
 import type { AsgardEvent } from '../hooks/useSocket';
@@ -12,8 +12,6 @@ import type { AsgardEvent } from '../hooks/useSocket';
 function shortAddr(addr: string) {
     return addr ? `${addr.slice(0, 6)}...${addr.slice(-4)}` : '—';
 }
-
-interface BalanceState { address: string; balances: Balances; history: any[] }
 
 interface Props {
     socketEvents?: AsgardEvent[];
@@ -25,9 +23,6 @@ export default function Agents({ socketEvents = [] }: Props) {
     const [selectedAgentId, setSelectedAgentId] = useState<string | null>(null);
     const [showModal, setShowModal] = useState(false);
     const [result, setResult] = useState<{ apiKey: string; agentId: string; walletAddress: string } | null>(null);
-    const [balances, setBalances] = useState<Record<string, BalanceState>>({});
-    const [watchKey, setWatchKey] = useState('');
-    const [watchId, setWatchId] = useState('');
     const [form, setForm] = useState({ name: '', policyProfile: 'default' });
     const [submitting, setSubmitting] = useState(false);
     const [error, setError] = useState('');
@@ -71,20 +66,6 @@ export default function Agents({ socketEvents = [] }: Props) {
         setSubmitting(false);
     };
 
-    const handleCheckBalance = async () => {
-        if (!watchId || !watchKey) return;
-        setError('');
-        try {
-            const [b, h] = await Promise.all([
-                fetchBalance(watchId, watchKey),
-                fetchHistory(watchId, watchKey, 5) // Fetch last 5 transactions
-            ]);
-            setBalances(prev => ({ ...prev, [watchId]: { ...b, history: h.history || [] } }));
-        } catch {
-            setError('Failed to fetch balance. Check Agent ID and API key.');
-        }
-    };
-
     const pillClass = (p: string) => p === 'high_volume' ? 'yellow' : p === 'read_only' ? 'blue' : 'green';
     const PillIcon = ({ p }: { p: string }) =>
         p === 'high_volume' ? <TrendingUp size={10} style={{ marginRight: 3 }} />
@@ -105,7 +86,7 @@ export default function Agents({ socketEvents = [] }: Props) {
                 </div>
                 <button className="btn btn-primary" onClick={() => { setShowModal(true); setResult(null); setError(''); }}
                     style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                    <Plus size={14} /> New Agent
+                    <Plus size={14} /> <span className="hide-on-mobile">New Agent</span>
                 </button>
             </div>
 
@@ -152,8 +133,8 @@ export default function Agents({ socketEvents = [] }: Props) {
                                             {new Date(a.createdAt).toLocaleDateString()}
                                         </td>
                                         <td style={{ textAlign: 'right' }}>
-                                            <button className="btn btn-ghost" onClick={() => setSelectedAgentId(a.agentId)} style={{ padding: '6px 12px' }}>
-                                                View <Eye size={12} style={{ marginLeft: 6 }} />
+                                            <button className="btn btn-ghost" onClick={() => setSelectedAgentId(a.agentId)} style={{ padding: '6px 12px', display: 'flex', alignItems: 'center', gap: 6 }}>
+                                                <span className="hide-on-mobile">View</span> <Eye size={12} />
                                             </button>
                                         </td>
                                     </tr>
@@ -161,89 +142,6 @@ export default function Agents({ socketEvents = [] }: Props) {
                         </table>
                     </div>
                 )}
-            </div>
-
-            {/* Balance checker */}
-            <div className="card">
-                <div className="card-header">
-                    <span className="card-title" style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                        <Wallet size={14} /> Check Balance & History
-                    </span>
-                </div>
-                <div className="form-row">
-                    <div className="form-group" style={{ margin: 0 }}>
-                        <label>Agent ID</label>
-                        <input placeholder="agt-uuid…" value={watchId} onChange={e => setWatchId(e.target.value)} />
-                    </div>
-                    <div className="form-group" style={{ margin: 0 }}>
-                        <label>Agent API Key</label>
-                        <input type="password" placeholder="asgard_sk_…" value={watchKey} onChange={e => setWatchKey(e.target.value)} />
-                    </div>
-                </div>
-                {error && (
-                    <div className="alert error" style={{ marginTop: 12, display: 'flex', alignItems: 'center', gap: 8 }}>
-                        <AlertTriangle size={14} style={{ flexShrink: 0 }} /> {error}
-                    </div>
-                )}
-                {watchId && balances[watchId] && (
-                    <>
-                        <div className="alert info" style={{ marginTop: 12, gap: 16, flexWrap: 'wrap' }}>
-                            <span className="mono">{shortAddr(balances[watchId].address)}</span>
-                            {Object.entries(balances[watchId].balances).map(([t, v]) => (
-                                <span key={t}><strong>{t}</strong>: {Number(v).toFixed(4)}</span>
-                            ))}
-                        </div>
-
-                        {balances[watchId].history.length > 0 && (
-                            <div className="table-wrap" style={{ marginTop: 12 }}>
-                                <table>
-                                    <thead>
-                                        <tr>
-                                            <th>Status</th>
-                                            <th>Time</th>
-                                            <th>Signature</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {balances[watchId].history.map((tx, idx) => (
-                                            <tr key={idx}>
-                                                <td>
-                                                    {tx.err ? (
-                                                        <span style={{ color: 'var(--red)', display: 'flex', alignItems: 'center', gap: 4 }}>
-                                                            <XCircle size={12} /> Failed
-                                                        </span>
-                                                    ) : (
-                                                        <span style={{ color: 'var(--green)', display: 'flex', alignItems: 'center', gap: 4 }}>
-                                                            <CheckCircle2 size={12} /> Success
-                                                        </span>
-                                                    )}
-                                                </td>
-                                                <td style={{ color: 'var(--muted)', fontSize: 13 }}>
-                                                    {tx.blockTime ? new Date(tx.blockTime).toLocaleString() : 'Recent'}
-                                                </td>
-                                                <td>
-                                                    <a href={tx.explorerUrl} target="_blank" rel="noreferrer"
-                                                        style={{ color: 'var(--accent)', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 4 }}>
-                                                        {shortAddr(tx.signature)} <Eye size={12} />
-                                                    </a>
-                                                </td>
-                                            </tr>
-                                        ))}
-                                    </tbody>
-                                </table>
-                            </div>
-                        )}
-                        {balances[watchId].history.length === 0 && (
-                            <div style={{ padding: '12px 16px', fontSize: 13, color: 'var(--muted)', marginTop: 12, background: 'var(--surface2)', borderRadius: 8, textAlign: 'center' }}>
-                                No transactions found for this wallet.
-                            </div>
-                        )}
-                    </>
-                )}
-                <button className="btn btn-primary" style={{ marginTop: 14, display: 'flex', alignItems: 'center', gap: 6 }}
-                    onClick={handleCheckBalance} disabled={!watchId || !watchKey}>
-                    <Wallet size={13} /> Fetch Data
-                </button>
             </div>
 
             {/* Provision modal */}
@@ -265,7 +163,7 @@ export default function Agents({ socketEvents = [] }: Props) {
                                         <input readOnly value={result.agentId} />
                                         <button className="btn btn-ghost btn-sm" onClick={() => copy(result.agentId, 'agentId')}
                                             style={{ flexShrink: 0, display: 'flex', alignItems: 'center', gap: 4 }}>
-                                            {copied === 'agentId' ? <CheckCircle2 size={12} /> : <Copy size={12} />}
+                                            {copied === 'agentId' ? <CheckCircle2 size={12} /> : <Copy size={12} />} <span className="hide-on-mobile">Copy</span>
                                         </button>
                                     </div>
                                 </div>
@@ -275,7 +173,7 @@ export default function Agents({ socketEvents = [] }: Props) {
                                         <input readOnly value={result.walletAddress} />
                                         <button className="btn btn-ghost btn-sm" onClick={() => copy(result.walletAddress, 'wallet')}
                                             style={{ flexShrink: 0, display: 'flex', alignItems: 'center', gap: 4 }}>
-                                            {copied === 'wallet' ? <CheckCircle2 size={12} /> : <Copy size={12} />}
+                                            {copied === 'wallet' ? <CheckCircle2 size={12} /> : <Copy size={12} />} <span className="hide-on-mobile">Copy</span>
                                         </button>
                                     </div>
                                 </div>
@@ -291,7 +189,7 @@ export default function Agents({ socketEvents = [] }: Props) {
                                         <span style={{ wordBreak: 'break-all' }}>{showKey ? result.apiKey : '•'.repeat(40)}</span>
                                         <button className="btn btn-ghost btn-sm" onClick={() => copy(result.apiKey, 'apikey')}
                                             style={{ flexShrink: 0, display: 'flex', alignItems: 'center', gap: 4 }}>
-                                            {copied === 'apikey' ? <CheckCircle2 size={12} /> : <Copy size={12} />}
+                                            {copied === 'apikey' ? <CheckCircle2 size={12} /> : <Copy size={12} />} <span className="hide-on-mobile">Copy</span>
                                         </button>
                                     </div>
                                 </div>
@@ -326,7 +224,7 @@ export default function Agents({ socketEvents = [] }: Props) {
                                     <button type="button" className="btn btn-ghost" onClick={() => setShowModal(false)}>Cancel</button>
                                     <button type="submit" className="btn btn-primary" disabled={submitting}
                                         style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                                        {submitting ? <><div className="spinner" style={{ width: 14, height: 14 }} /> Creating…</> : <><Plus size={13} /> Create Agent</>}
+                                        {submitting ? <><div className="spinner" style={{ width: 14, height: 14 }} /> <span className="hide-on-mobile">Creating…</span></> : <><Plus size={13} /> <span className="hide-on-mobile">Create Agent</span></>}
                                     </button>
                                 </div>
                             </form>

@@ -78,7 +78,7 @@ export default function Settings() {
                 <div>
                     <button className="btn btn-primary" onClick={save}
                         style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                        <Save size={13} /> Save Settings
+                        <Save size={13} /> <span className="hide-on-mobile">Save Settings</span>
                     </button>
                 </div>
             </div>

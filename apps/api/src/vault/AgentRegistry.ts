@@ -72,6 +72,7 @@ export function registerAgent(
 export function findAgentByApiKey(apiKey: string): AgentRecord | null {
     const registry = loadRegistry();
     const keyHash = hashApiKey(apiKey);
+    console.log("Key hash", keyHash)
     const record = Object.values(registry).find(
         (r) => r.apiKeyHash === keyHash && r.active
     );

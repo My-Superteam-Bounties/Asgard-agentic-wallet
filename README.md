@@ -16,7 +16,7 @@ This project proudly fulfills every single requirement of the Superteam Bounty:
 - [x] **Sign transactions automatically:** The local Asgard daemon decrypts the vault in-memory, signs the transaction, and zeroes the memory. The AI agent never touches the raw private key.
 - [x] **Hold SOL or SPL tokens:** The `x-wallet transfer` tool allows agents to autonomously send and receive SOL/USDC on the Devnet.
 - [x] **Interact with a protocol:** We interact intimately with the SPL Token Program and System Program.
-- [x] **Multi-Agent Test Harness (Working Prototype):** Run `npm run demo` to watch 3 distinct AI Agents provision wallets, request funding, and autonomously trade with each other in an infinite loop.
+- [x] **Multi-Agent Test Harness (Working Prototype):** Run `pnpm demo` to watch 3 distinct AI Agents provision wallets, request funding, and autonomously trade with each other in an infinite loop.
 - [x] **Open-source code:** You are looking at it! Full monorepo architecture.
 - [x] **Deep Dive & SKILLS.md:** Provided in the root directory.
 
@@ -120,13 +120,20 @@ asgard start
 
 * **The Dashboard:** Open your browser and navigate to `http://localhost:8017`. You will see the beautiful Asgard control center.
 
-### Step 4: Run the AI Agent Demo!
-To prove the system works, we built a Test Harness that fakes 3 autonomous bots interacting with Asgard.
+## 🤖 Multi-Agent Ecosystem Demo (pnpm demo)
 
-Leave your `asgard start` daemon running in one terminal. Open a **new terminal tab**, ensure you are in the root of this repository, and run:
+To prove the system works, we built a Test Harness (`examples/multi-agent-demo.js`) that autonomously simulates 3 AI agents interacting with Asgard directly.
+
+### Prerequisites (What MUST be running)
+Before launching the demo, verify that you have these services running in separate terminal windows:
+1. **The Kora Paymaster Core** (started via `kora ...` in Step 2)
+2. **The Asgard Daemon** (started via `asgard start` in Step 3)
+
+### Running the Demo
+Once the Node and Paymaster are successfully running, open a **brand new terminal tab**, navigate to the root of this repository, and execute:
 
 ```bash
-npm run demo
+pnpm demo
 ```
 
 **What happens next?**
@@ -135,30 +142,6 @@ npm run demo
 3. The script will pause and ask you to send Devnet SOL to one of the newly created addresses.
 4. Once funded, press Enter. The agents will enter an infinite loop, randomly transferring 0.001 SOL to each other using the `x-wallet transfer` tool.
 5. Watch the "Live Activity Feed" on your web dashboard light up green as the transactions succeed!
-
----
-
-## 🧠 Integrating with Real AI (LangChain / n8n)
-
-The `x-wallet` CLI was explicitly designed to output deterministic JSON that an LLM can parse.
-
-If you are building an actual AI Agent using LangChain, you simply wrap the CLI in a Node.js `execSync` block:
-
-```typescript
-import { DynamicStructuredTool } from "@langchain/core/tools";
-import { execSync } from "child_process";
-
-export const ProvisionWalletTool = new DynamicStructuredTool({
-    name: "provision_wallet",
-    description: "Provisions a new secure Asgard wallet on Solana for this agent.",
-    schema: z.object({ agentName: z.string() }),
-    func: async ({ agentName }) => {
-        // AI Executes the Asgard CLI Tool!
-        const result = execSync(`x-wallet provision --name "${agentName}"`);
-        return JSON.parse(result).walletAddress;
-    },
-});
-```
 
 ---
 

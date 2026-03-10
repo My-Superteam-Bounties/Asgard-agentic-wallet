@@ -195,7 +195,7 @@ An attacker intercepts a signed transaction and attempts to re-broadcast it.
 Asgard operates as a local Daemon with a direct CLI interface (`x-wallet`). This makes it trivially straightforward to integrate with agents built in Python, TypeScript, or bash.
 
 **Workflow:**
-1. A python LangChain agent decides: "is SOL price below my buy threshold?"
+1. An autonomous AI agent decides: "is SOL price below my buy threshold?"
 2. The agent executes a shell command: `subprocess.run("x-wallet swap --in USDC --out SOL -a 10", shell=True)`
 3. The `x-wallet` CLI streams the intent to the local daemon, which processes it, sponsors the gas via Kora, and lands the transaction on Devnet.
 4. The `x-wallet` CLI outputs strictly formatted JSON (the signature and result) to `stdout` which the Python script effortlessly parses.

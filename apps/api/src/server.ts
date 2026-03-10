@@ -62,8 +62,8 @@ const app: Application = express();
 // CORS is required because the React dashboard runs on port 5173
 app.use(cors());
 
-// Security headers
-app.use(helmet());
+// Security headers (Disable strict CSP for local inline scripts)
+app.use(helmet({ contentSecurityPolicy: false }));
 
 // Request logging
 app.use(morgan('combined'));
@@ -85,6 +85,7 @@ app.use(
 // ─── Routes ──────────────────────────────────────────────────────────────────
 
 app.use('/v1/agents', (req, res, next) => {
+    console.log("Using agents route")
     if (!vault) {
         vault = new AsgardVault(process.env.ASGARD_MASTER_PASSWORD!, resolveKeystorePath(process.env.KEYSTORE_PATH), process.env.SOLANA_RPC_URL!);
         policy = new PolicyEngine();
@@ -121,7 +122,7 @@ app.get('/health', (_req, res) => {
 // Serve React Webapp statically from apps/webapp/dist
 const webappPath = path.resolve(__dirname, '../../webapp/dist');
 if (fs.existsSync(webappPath)) {
-    app.use(express.static(webappPath));
+    app.use(express.static(webappPath, { index: false }));
 }
 
 // 404 catch-all for API routes
@@ -138,15 +139,20 @@ app.get('*', (req, res) => {
         // Auto-inject the node key ONLY for local requests to prevent leaking keys
         // if the user accidentally exposes port 8017 to the public internet
         const ip = req.socket.remoteAddress;
+
         if (ip === '127.0.0.1' || ip === '::ffff:127.0.0.1' || ip === '::1') {
             html = html.replace(
                 '</head>',
-                `<script>window.ASGARD_NODE_KEY="${process.env.ASGARD_NODE_KEY}";</script></head>`
+                `<script>
+                    localStorage.setItem('asgard_node_key', "${process.env.ASGARD_NODE_KEY}");
+                </script>
+                </head>`
             );
         }
         res.send(html);
+
     } else {
-        res.status(404).send('Asgard Webapp is not built. Run npm run build -w apps/webapp');
+        res.status(404).send('Asgard Webapp is not built. Run pnpm build --filter @asgard/webapp');
     }
 });
 

@@ -110,6 +110,7 @@ export function createAgentRouter(vault: AsgardVault, policy: PolicyEngine): Rou
      * Agents can only query their own record.
      */
     router.get('/:agentId', requireAgentAuth, (req: Request, res: Response) => {
+
         try {
             const { agentId } = req.params;
 

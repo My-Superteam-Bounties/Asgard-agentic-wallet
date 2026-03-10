@@ -124,7 +124,7 @@ export default function ActivityFeed({ events, connected, clearEvents }: Activit
                             onClick={clearEvents}
                             style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 11 }}
                         >
-                            <Trash2 size={11} /> Clear
+                            <Trash2 size={11} /> <span className="hide-on-mobile">Clear</span>
                         </button>
                     )}
                 </div>

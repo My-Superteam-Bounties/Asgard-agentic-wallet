@@ -94,7 +94,7 @@ export default function Execute() {
                             onClick={() => { setTab(t); setResult(null); setError(''); }}
                             style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
                             {t === 'swap' ? <ArrowLeftRight size={13} /> : <Send size={13} />}
-                            {t === 'swap' ? 'Swap' : 'Transfer'}
+                            <span className="hide-on-mobile">{t === 'swap' ? 'Swap' : 'Transfer'}</span>
                         </button>
                     ))}
                 </div>
@@ -184,10 +184,10 @@ export default function Execute() {
                         style={{ marginTop: 16, width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}
                         disabled={loading || !agentId || !apiKey}>
                         {loading
-                            ? <><Loader2 size={14} style={{ animation: 'spin .6s linear infinite' }} /> Processing…</>
+                            ? <><Loader2 size={14} style={{ animation: 'spin .6s linear infinite' }} /> <span className="hide-on-mobile">Processing…</span></>
                             : tab === 'swap'
-                                ? <><ArrowLeftRight size={14} /> Submit Swap Intent</>
-                                : <><Send size={14} /> Submit Transfer Intent</>}
+                                ? <><ArrowLeftRight size={14} /> <span className="hide-on-mobile">Submit Swap Intent</span></>
+                                : <><Send size={14} /> <span className="hide-on-mobile">Submit Transfer Intent</span></>}
                     </button>
                 </form>
             </div>

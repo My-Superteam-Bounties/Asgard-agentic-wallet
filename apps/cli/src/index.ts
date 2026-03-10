@@ -86,7 +86,7 @@ function handleApiError(err: unknown): never {
             }
         } else if (err.code === 'ECONNREFUSED') {
             console.log(`\n  ${chalk.red('✖')} Cannot reach Asgard Gateway at ${ASGARD_URL}`);
-            console.log(`  ${chalk.dim('Make sure the API server is running: npm run api')}`);
+            console.log(`  ${chalk.dim('Make sure the API server is running: pnpm api')}`);
         } else {
             console.log(`\n  ${chalk.red('✖')} ${data?.message || err.message}`);
         }

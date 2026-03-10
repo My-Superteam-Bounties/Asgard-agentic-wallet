@@ -98,6 +98,10 @@ body {
   margin: 0 auto;
 }
 
+.mobile-menu-btn {
+  display: none !important;
+}
+
 @media (max-width: 900px) {
   .layout {
     grid-template-columns: 1fr;
@@ -105,36 +109,74 @@ body {
 
   .sidebar {
     position: fixed;
+    top: 0;
     bottom: 0;
-    top: auto;
-    height: auto;
-    width: 100%;
-    flex-direction: row;
-    border-right: none;
-    border-top: 1px solid var(--border);
-    padding: 0;
-    z-index: 50;
-    overflow-x: auto;
+    left: 0;
+    height: 100vh;
+    width: 250px;
+    flex-direction: column;
+    border-right: 1px solid var(--border);
+    border-top: none;
+    padding: 24px 0;
+    z-index: 200;
+    transform: translateX(-100%);
+    transition: transform 0.3s cubic-bezier(0.4, 0.0, 0.2, 1);
+  }
+
+  .sidebar.open {
+    transform: translateX(0);
   }
 
   .main {
-    padding-bottom: 72px;
+    padding-bottom: 0;
   }
 
   .sidebar-logo,
-  .sidebar-section-label {
-    display: none;
+  .sidebar-section-label,
+  .sidebar-footer {
+    display: block;
   }
 
   .sidebar-nav {
-    flex-direction: row;
-    padding: 0;
+    flex-direction: column;
+    padding: 0 10px;
+    width: auto;
+    justify-content: flex-start;
   }
 
   .page-content {
     padding: 24px 16px;
   }
+
+  .mobile-menu-btn {
+    display: inline-flex !important;
+  }
+
+  .hide-on-mobile {
+    display: none !important;
+  }
 }
+
+.mobile-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(2px);
+  z-index: 150;
+  animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+
 
 /* ── Sidebar ─────────────────────────────────────────── */
 
@@ -226,21 +268,22 @@ body {
 
 @media (max-width: 900px) {
   .nav-item {
-    flex-direction: column;
-    gap: 3px;
-    padding: 10px 14px;
-    font-size: 10px;
-    min-width: 64px;
-    justify-content: center;
+    flex-direction: row;
+    gap: 10px;
+    padding: 9px 12px;
+    font-size: 13.5px;
+    min-width: unset;
+    justify-content: flex-start;
   }
 
   .nav-item .nav-icon {
-    font-size: 18px;
-    width: auto;
+    font-size: 15px;
+    width: 18px;
+    flex-shrink: 0;
   }
 
   .sidebar-nav {
-    gap: 0;
+    gap: 2px;
   }
 }
 

@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import {
   LayoutDashboard, Bot, Zap, Settings as SettingsIcon,
-  RefreshCw, Wifi, WifiOff, Sun, Moon
+  RefreshCw, Wifi, WifiOff, Sun, Moon, Menu
 } from 'lucide-react';
 import './index.css';
 import { fetchHealth, type GatewayHealth } from './api';
@@ -38,8 +38,11 @@ export default function App() {
     return (p && Object.keys(PAGE_TITLES).includes(p)) ? (p as Page) : 'dashboard';
   });
 
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
   const setPage = (p: Page) => {
     setPageState(p);
+    setMobileMenuOpen(false);
     window.history.replaceState(null, '', `?page=${p}`);
   };
   const [health, setHealth] = useState<GatewayHealth | null>(null);
@@ -93,8 +96,12 @@ export default function App() {
       </div>
 
       <div className="layout">
+        {mobileMenuOpen && (
+          <div className="mobile-overlay" onClick={() => setMobileMenuOpen(false)} />
+        )}
+
         {/* Sidebar */}
-        <aside className="sidebar">
+        <aside className={`sidebar ${mobileMenuOpen ? 'open' : ''}`}>
           <div className="sidebar-logo">
             <div className="logo-mark">
               <img src="/favicon_io/android-chrome-192x192.png" alt="Asgard Logo" style={{ width: 32, height: 32, borderRadius: '25%' }} />
@@ -138,9 +145,18 @@ export default function App() {
         {/* Main */}
         <div className="main">
           <header className="topbar">
-            <div>
-              <div className="topbar-title">{title}</div>
-              <div className="topbar-sub">{sub}</div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+              <button
+                className="btn btn-ghost btn-sm mobile-menu-btn"
+                onClick={() => setMobileMenuOpen(true)}
+                style={{ padding: '6px' }}
+              >
+                <Menu size={18} />
+              </button>
+              <div>
+                <div className="topbar-title">{title}</div>
+                <div className="topbar-sub">{sub}</div>
+              </div>
             </div>
             <div className="topbar-actions">
               <button className="btn btn-ghost btn-sm" onClick={toggleTheme} title="Toggle Theme" style={{ padding: '6px 10px' }}>
@@ -148,7 +164,7 @@ export default function App() {
               </button>
               <button className="btn btn-ghost btn-sm" onClick={() => { void checkHealth(); }}
                 style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                <RefreshCw size={13} /> Refresh
+                <RefreshCw size={13} /> <span className="hide-on-mobile">Refresh</span>
               </button>
             </div>
           </header>
